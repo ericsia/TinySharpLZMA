@@ -87,7 +87,7 @@ namespace TinySharpLZMA
 
                     coder.SetDecoderProperties(properties);
                     coder.Code(compressedSize, outStream, compressedSize.Length, outSize, null);
-                    outStream.Flush();
+                    // no need flush, by default will flush
                 }
             }
 
