@@ -18,7 +18,7 @@ namespace TinySharpLZMA
             decompressFileLZMA("test.7z", "out.exe");
             Console.WriteLine($"Decompression took {DateTime.Now.Subtract(now).TotalMilliseconds:F3}ms");
 
-            // Console.ReadLine();
+            Console.ReadLine();
 
         }
         static CoderPropID[] propIDs =
@@ -42,48 +42,55 @@ namespace TinySharpLZMA
             0,       // LitPosBits       [0  , 4  ], default: 2    || 2 for 32-bit data
             2,       // Algorithm
             128,     // NumFastBytes     [5  , 273], default: 128
-            "bt2",   // MatchFinder      [bt2, bt4], default: bt4
+            "bt4",   // MatchFinder      [bt2, bt4], default: bt4
             false    // EndMarker        write End Of Stream marker
         };
 
         private static void compressFileLZMA(string inFile, string outFile)
         {
             Encoder coder = new Encoder();
-            FileStream compressedSize = new FileStream(inFile, FileMode.Open);
-            FileStream outStream = new FileStream(outFile, FileMode.Create);
 
-            coder.SetCoderProperties(propIDs, properties);
-            // Write the encoder properties
-            coder.WriteCoderProperties(outStream);
+            using (var compressedSize = new FileStream(inFile, FileMode.Open))
+            {
+                using (var outStream = new FileStream(outFile, FileMode.Create))
+                {
+                    coder.SetCoderProperties(propIDs, properties);
+                    // Write the encoder properties
+                    coder.WriteCoderProperties(outStream);
 
-            // Write the decompressed file size.
-            outStream.Write(BitConverter.GetBytes(compressedSize.Length), 0, 8);
+                    // Write the decompressed file size.
+                    outStream.Write(BitConverter.GetBytes(compressedSize.Length), 0, 8);
 
-            // Encode the file.
-            coder.Code(compressedSize, outStream, compressedSize.Length, -1, null);
-            // no need flush, by default will flush
-            outStream.Close();
+                    // Encode the file.
+                    coder.Code(compressedSize, outStream, compressedSize.Length, -1, null);
+                    // no need flush, by default will flush
+                } // will auto close
+            }
         }
 
         private static void decompressFileLZMA(string inFile, string outFile)
         {
             Decoder coder = new Decoder();
-            FileStream compressedSize = new FileStream(inFile, FileMode.Open);
-            FileStream output = new FileStream(outFile, FileMode.Create);
 
-            // Read the decoder properties
-            byte[] properties = new byte[5];
-            compressedSize.Read(properties, 0, 5);
+            using (var compressedSize = new FileStream(inFile, FileMode.Open))
+            {
+                using (var outStream = new FileStream(outFile, FileMode.Create))
+                {
+                    // Read the decoder properties
+                    byte[] properties = new byte[5];
+                    compressedSize.Read(properties, 0, 5);
 
-            // Read in the decompress file size.
-            byte[] fileLengthBytes = new byte[8];
-            compressedSize.Read(fileLengthBytes, 0, 8);
-            long outSize = BitConverter.ToInt64(fileLengthBytes, 0);
+                    // Read in the decompress file size.
+                    byte[] fileLengthBytes = new byte[8];
+                    compressedSize.Read(fileLengthBytes, 0, 8);
+                    long outSize = BitConverter.ToInt64(fileLengthBytes, 0);
 
-            coder.SetDecoderProperties(properties);
-            coder.Code(compressedSize, output, compressedSize.Length, outSize, null);
-            output.Flush();
-            output.Close();
+                    coder.SetDecoderProperties(properties);
+                    coder.Code(compressedSize, outStream, compressedSize.Length, outSize, null);
+                    outStream.Flush();
+                }
+            }
+
         }
     }
 }

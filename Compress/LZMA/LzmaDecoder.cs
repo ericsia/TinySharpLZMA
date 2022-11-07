@@ -364,12 +364,6 @@ namespace SevenZip.Compression.LZMA
 			SetPosBitsProperties(pb);
 		}
 
-		public bool Train(System.IO.Stream stream)
-		{
-			_solid = true;
-			return m_OutWindow.Train(stream);
-		}
-
 		/*
 		public override bool CanRead { get { return true; }}
 		public override bool CanWrite { get { return true; }}

@@ -14,14 +14,6 @@ namespace SevenZip.Compression.RangeCoder
 
 		public void Init() { Prob = kBitModelTotal >> 1; }
 
-		public void UpdateModel(uint symbol)
-		{
-			if (symbol == 0)
-				Prob += (kBitModelTotal - Prob) >> kNumMoveBits;
-			else
-				Prob -= (Prob) >> kNumMoveBits;
-		}
-
 		public void Encode(Encoder encoder, uint symbol)
 		{
 			// encoder.EncodeBit(Prob, kNumBitModelTotalBits, symbol);
@@ -75,14 +67,6 @@ namespace SevenZip.Compression.RangeCoder
 		const int kNumMoveBits = 5;
 
 		uint Prob;
-
-		public void UpdateModel(int numMoveBits, uint symbol)
-		{
-			if (symbol == 0)
-				Prob += (kBitModelTotal - Prob) >> numMoveBits;
-			else
-				Prob -= (Prob) >> numMoveBits;
-		}
 
 		public void Init() { Prob = kBitModelTotal >> 1; }
 

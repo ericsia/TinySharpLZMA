@@ -46,22 +46,6 @@ namespace SevenZip.Compression.RangeCoder
 			Stream.Flush();
 		}
 
-		public void CloseStream()
-		{
-			Stream.Close();
-		}
-
-		public void Encode(uint start, uint size, uint total)
-		{
-			Low += start * (Range /= total);
-			Range *= size;
-			while (Range < kTopValue)
-			{
-				Range <<= 8;
-				ShiftLow();
-			}
-		}
-
 		public void ShiftLow()
 		{
 			if ((uint)Low < (uint)0xFF000000 || (uint)(Low >> 32) == 1)
@@ -91,23 +75,6 @@ namespace SevenZip.Compression.RangeCoder
 					Range <<= 8;
 					ShiftLow();
 				}
-			}
-		}
-
-		public void EncodeBit(uint size0, int numTotalBits, uint symbol)
-		{
-			uint newBound = (Range >> numTotalBits) * size0;
-			if (symbol == 0)
-				Range = newBound;
-			else
-			{
-				Low += newBound;
-				Range -= newBound;
-			}
-			while (Range < kTopValue)
-			{
-				Range <<= 8;
-				ShiftLow();
 			}
 		}
 
@@ -144,41 +111,6 @@ namespace SevenZip.Compression.RangeCoder
 			Stream = null;
 		}
 
-		public void CloseStream()
-		{
-			Stream.Close();
-		}
-
-		public void Normalize()
-		{
-			while (Range < kTopValue)
-			{
-				Code = (Code << 8) | (byte)Stream.ReadByte();
-				Range <<= 8;
-			}
-		}
-
-		public void Normalize2()
-		{
-			if (Range < kTopValue)
-			{
-				Code = (Code << 8) | (byte)Stream.ReadByte();
-				Range <<= 8;
-			}
-		}
-
-		public uint GetThreshold(uint total)
-		{
-			return Code / (Range /= total);
-		}
-
-		public void Decode(uint start, uint size, uint total)
-		{
-			Code -= start * Range;
-			Range *= size;
-			Normalize();
-		}
-
 		public uint DecodeDirectBits(int numTotalBits)
 		{
 			uint range = Range;
@@ -208,25 +140,6 @@ namespace SevenZip.Compression.RangeCoder
 			Range = range;
 			Code = code;
 			return result;
-		}
-
-		public uint DecodeBit(uint size0, int numTotalBits)
-		{
-			uint newBound = (Range >> numTotalBits) * size0;
-			uint symbol;
-			if (Code < newBound)
-			{
-				symbol = 0;
-				Range = newBound;
-			}
-			else
-			{
-				symbol = 1;
-				Code -= newBound;
-				Range -= newBound;
-			}
-			Normalize();
-			return symbol;
 		}
 
 		// ulong GetProcessedSize() {return Stream.GetProcessedSize(); }

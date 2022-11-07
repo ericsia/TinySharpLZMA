@@ -18,7 +18,7 @@ namespace SevenZip.Compression.LZMA
 
 		static Byte[] g_FastPos = new Byte[1 << 11];
 
-		static Encoder()
+		static Encoder() // this is used, do not remove
 		{
 			const Byte kFastSlots = 22;
 			int c = 2;
@@ -1027,12 +1027,6 @@ namespace SevenZip.Compression.LZMA
 			}
 		}
 
-		bool ChangePair(UInt32 smallDist, UInt32 bigDist)
-		{
-			const int kDif = 7;
-			return (smallDist < ((UInt32)(1) << (32 - kDif)) && bigDist >= (smallDist << kDif));
-		}
-
 		void WriteEndMarker(UInt32 posState)
 		{
 			if (!_writeEndMark)
@@ -1471,10 +1465,6 @@ namespace SevenZip.Compression.LZMA
 		}
 
 		uint _trainSize = 0;
-		public void SetTrainSize(uint trainSize)
-		{
-			_trainSize = trainSize;
-		}
 		
 	}
 }
